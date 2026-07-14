@@ -1,168 +1,117 @@
-# Coleta-de-Dados-FEFC-Genero-e-Raca-
-Scripts em Python para integrar dados de FEFC e resultados eleitorais do TSE de 2020 e 2024, com recortes por partido, gênero, raça e situação eleitoral.
-O projeto permite analisar comparativamente a distribuição de recursos eleitorais por:
+# FEFC, Gênero e Raça: Desempenho Eleitoral de Vereadores (2020–2024)
 
-- ano eleitoral;
-- partido político;
-- gênero;
-- grupo racial;
-- candidaturas eleitas;
-- candidaturas suplentes;
-- candidaturas não eleitas.
+Base comparativa do FEFC, perfil e desempenho eleitoral de candidaturas a vereador e prefeito, com recorte de gênero e raça, comparando os ciclos eleitorais de 2020 e 2024.
 
+## Objetivo
+
+Verificar se a destinação de recursos do **FEFC (Fundo Especial de Financiamento de Campanha)** às candidaturas de **mulheres e pessoas negras** apresenta relação com o desempenho eleitoral e com o número de candidaturas eleitas para vereador, comparando 2020 e 2024 em todos os partidos.
+
+---
 
 ## Fonte dos dados
 
-Os dados utilizados são disponibilizados pelo Tribunal Superior Eleitoral (TSE), por meio do Portal de Dados Abertos.
+Todos os dados eleitorais foram obtidos do portal de **dados abertos do TSE**:
 
-### Eleições de 2020
+> [https://dadosabertos.tse.jus.br](https://dadosabertos.tse.jus.br)
 
-- [Página oficial — Prestação de Contas Eleitorais 2020](https://dadosabertos.tse.jus.br/dataset/prestacao-de-contas-eleitorais-2020)
-- [Download direto — Fundo Partidário e FEFC 2020](https://cdn.tse.jus.br/estatistica/sead/odsele/fefc_fp/fefc_fp_2020.zip)
+Arquivo utilizado: `consulta_cand_{ano}.zip` — contém o cadastro de todos os candidatos registrados, incluindo situação final (eleito/não eleito), gênero e cor/raça autodeclarados.
 
-### Eleições de 2024
+---
 
-- [Página oficial — Prestação de Contas Eleitorais 2024](https://dadosabertos.tse.jus.br/dataset/prestacao-de-contas-eleitorais-2024)
-- [Download direto — Fundo Partidário e FEFC 2024](https://cdn.tse.jus.br/estatistica/sead/odsele/fefc_fp/fefc_fp_2024.zip)
+## Estrutura do repositório
 
-## Arquivos que devem ser baixados manualmente
-
-Os arquivos de FEFC e Fundo Partidário não são baixados automaticamente pelos scripts deste repositório.
-
-Antes da execução:
-
-1. Baixe o ZIP do ano correspondente no Portal de Dados Abertos do TSE.
-2. Extraia o conteúdo do arquivo ZIP.
-3. Localize o arquivo:
-   - `fefc_cor_raca_2020.csv`, para a eleição de 2020;
-   - `fefc_cor_raca_2024.csv`, para a eleição de 2024.
-4. Copie o CSV para a pasta principal do projeto.
-
-Os arquivos de candidaturas `consulta_cand_2020.zip` e `consulta_cand_2024.zip` são baixados automaticamente pelos scripts, caso ainda não estejam disponíveis localmente.
-
-## Estrutura recomendada do projeto
-
-```text
-projeto_tse_fefc/
-├── extrair_resultados_tse_fefc.py
-├── extrair_resultados_tse_fefc_2020.py
-├── juntar_bases_2020_2024.py
-├── fefc_cor_raca_2020.csv
-├── fefc_cor_raca_2024.csv
-├── saida_2020/
-└── saida_2024/
+```
+.
+├── scripts/
+│   ├── 01_vereadores_eleitos.py       # Extrai vereadores eleitos do TSE
+│   ├── 02_prefeitos_eleitos.py        # Extrai prefeitos eleitos do TSE
+│   └── 03_agregado_genero_raca.py     # Agrega por partido, gênero e raça
+│
+├── vereadores_eleitos_2020_2024.csv               # Base individual de vereadores eleitos
+├── prefeitos_eleitos_2020_2024.csv                # Base individual de prefeitos eleitos
+├── vereadores_genero_raca_partido_2020_2024.csv   # Agregado vereadores
+├── prefeitos_genero_raca_partido_2020_2024.csv    # Agregado prefeitos
+├── fefc_interseccional_2020_2024.csv              # Taxa de eleição por grupo interseccional
+└── base_fefc_desempenho_vereador_2020_2024.xls    # Base analítica completa (FEFC + desempenho)
 ```
 
-## Requisitos
+---
 
-- Python 3.10 ou superior;
-- `pandas`;
-- `requests`.
+## Bases geradas
 
+### `vereadores_eleitos_2020_2024.csv` e `prefeitos_eleitos_2020_2024.csv`
+Cadastro individual dos eleitos. Uma linha por candidato.
 
-## Uso de um ZIP de candidaturas já baixado
+| Coluna | Descrição |
+|---|---|
+| `ANO_ELEICAO` | Ano da eleição (2020 ou 2024) |
+| `SG_UF` | Estado |
+| `NM_UE` | Município |
+| `SG_PARTIDO` / `NM_PARTIDO` | Sigla e nome do partido |
+| `NM_CANDIDATO` | Nome completo |
+| `NM_URNA_CANDIDATO` | Nome de urna |
+| `DS_GENERO` | Gênero autodeclarado (MASCULINO / FEMININO) |
+| `DS_COR_RACA` | Cor/raça autodeclarada (BRANCA / PARDA / PRETA / AMARELA / INDÍGENA) |
+| `DS_SIT_TOT_TURNO` | Situação final (ELEITO POR QP / ELEITO POR MÉDIA) |
 
-Por padrão, o script baixa automaticamente o arquivo de candidaturas do TSE. Caso o ZIP já esteja disponível, informe seu caminho com `--tse-zip`.
+### `vereadores_genero_raca_partido_2020_2024.csv` e `prefeitos_genero_raca_partido_2020_2024.csv`
+Versão agregada. Uma linha por combinação de ano + partido + gênero + raça.
 
-Exemplo para 2020:
+| Coluna | Descrição |
+|---|---|
+| `ANO_ELEICAO` | Ano da eleição |
+| `SG_PARTIDO` / `NM_PARTIDO` | Partido |
+| `DS_GENERO` | Gênero |
+| `DS_COR_RACA` | Cor/raça |
+| `VEREADORES_ELEITOS` / `PREFEITOS_ELEITOS` | Total de eleitos no grupo |
+
+### `fefc_interseccional_2020_2024.csv`
+Desempenho eleitoral por grupo interseccional (combinação de gênero e raça), partido e ano.
+
+| Coluna | Descrição |
+|---|---|
+| `ANO_ELEICAO` | Ano da eleição |
+| `PARTIDO` | Sigla do partido |
+| `GRUPO_INTERSECCIONAL` | Ex.: Mulher Negra, Homem Não Negro |
+| `CANDIDATOS` | Total de candidatos no grupo |
+| `ELEITOS` | Total de eleitos |
+| `NAO_ELEITOS` | Total de não eleitos |
+| `TAXA_ELEICAO_PCT` | Taxa de eleição (%) |
+
+> **Critério**: "Negro/a" = Preto/a + Pardo/a, conforme classificação do IBGE.
+
+---
+
+## Como reproduzir
+
+Requisitos: Python 3.9+ com `pandas` e `requests`.
 
 ```bash
-python extrair_resultados_tse_fefc_2020.py \
-  --fefc "fefc_cor_raca_2020.csv" \
-  --tse-zip "consulta_cand_2020.zip"
+pip install pandas requests
+
+# 1. Baixar e extrair os dados do TSE
+python scripts/01_vereadores_eleitos.py
+python scripts/02_prefeitos_eleitos.py
+
+# 2. Gerar as tabelas agregadas por gênero e raça
+python scripts/03_agregado_genero_raca.py
 ```
 
-## Cargo analisado
+Os scripts baixam os dados direto do CDN do TSE (~85 MB por ano) e salvam os CSVs na pasta raiz do projeto.
 
-O cargo padrão é `VEREADOR`.
+---
 
-Para indicar outro cargo, use o argumento `--cargo`:
+## Números gerais
 
-```bash
-python extrair_resultados_tse_fefc.py \
-  --fefc "fefc_cor_raca_2024.csv" \
-  --ano 2024 \
-  --cargo "VEREADOR"
-```
+| | Vereadores 2020 | Vereadores 2024 | Prefeitos 2020 | Prefeitos 2024 |
+|---|---|---|---|---|
+| **Total eleitos** | 58.192 | 58.174 | 5.601 | 5.568 |
+| **Mulheres** | ~17% | ~17% | ~12% | ~13% |
+| **Pessoas negras** (pretas + pardas) | ~46% | ~46% | ~33% | ~33% |
 
-## Classificações utilizadas
+---
 
-### Gênero
+## Licença
 
-São considerados os registros classificados pelo TSE como:
-
-- `FEMININO`;
-- `MASCULINO`.
-
-Registros com gênero não reconhecido são enviados para os arquivos de auditoria.
-
-### Grupo racial
-
-As categorias são agrupadas da seguinte forma:
-
-- **Negra:** candidaturas declaradas `PRETA` ou `PARDA`;
-- **Não negra:** candidaturas declaradas `BRANCA`, `AMARELA` ou `INDÍGENA`.
-
-Registros sem classificação racial reconhecida não são forçados para nenhum grupo e são enviados para auditoria.
-
-### Resultado eleitoral
-
-As situações são agrupadas da seguinte forma:
-
-- **Eleitos:** `ELEITO POR QP` e `ELEITO POR MÉDIA`;
-- **Suplentes:** `SUPLENTE`;
-- **Não eleitos:** `NÃO ELEITO`.
-
-As demais situações são mantidas nos arquivos de auditoria.
-
-## Arquivos gerados em cada ano
-
-O processamento gera os seguintes arquivos:
-
-```text
-resultados_por_partido_genero_raca_<ano>.csv
-resultados_abertos_por_partido_<ano>.csv
-base_final_fefc_resultados_<ano>.csv
-auditoria_situacoes_totalizacao_<ano>.csv
-auditoria_registros_excluidos_<ano>.csv
-auditoria_tse_sem_correspondencia_fefc_<ano>.csv
-auditoria_fefc_sem_correspondencia_tse_<ano>.csv
-```
-
-### Base principal
-
-O arquivo principal de cada ano é:
-
-```text
-base_final_fefc_resultados_<ano>.csv
-```
-
-Ele combina os dados de FEFC com as seguintes contagens:
-
-- `QT_CANDIDATOS_COM_FEFC`;
-- `QT_ELEITOS`;
-- `QT_SUPLENTES`;
-- `QT_NAO_ELEITOS`.
-
-## União das bases de 2020 e 2024
-
-Depois de gerar as duas bases anuais, execute:
-
-```bash
-python juntar_bases_2020_2024.py
-```
-
-O script procura, por padrão, os arquivos:
-
-```text
-saida_2020/base_final_fefc_resultados_2020.csv
-saida_2024/base_final_fefc_resultados_2024.csv
-```
-
-A base comparativa será criada com o nome:
-
-```text
-base_comparativa_fefc_2020_2024.csv
-```
-
-A união é vertical: as linhas de 2020 são acrescentadas às linhas de 2024. A coluna `AA_ELEICAO` identifica o ano de cada registro.
+Dados públicos, originados do TSE sob licença aberta (Lei de Acesso à Informação — Lei 12.527/2011).
+Scripts disponibilizados para fins acadêmicos e de pesquisa.
